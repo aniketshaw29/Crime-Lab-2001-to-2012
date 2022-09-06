@@ -11,15 +11,23 @@ app = Flask(__name__)
 df=pd.read_csv("data.csv") #load the dataset   #df is the data frame here(data set)
 df['TOTAL']=df.iloc[:,-12:].sum(axis=1)  #new col for total crimes
 d=df[:-38] #to drop total crime rows      #d is the updated data set 
+#d dataset is only used for max calculations
 
-#required in the coding part
+
+#slicing of list ---->  list[ Initial : End : IndexJump ]
+
+#required in the coding part for ("/INDIA_CRIME_CHART")
 list_state_ut = d['STATE/UT'].tolist()
-list_state_ut = list_state_ut[0:36:]     #total state/ut coloumn
+list_state_ut = list_state_ut[0:36]     #total state/ut coloumn
 list_state_ut.remove('TOTAL (STATES)')   #particular state and UT only
-list_all_ut = list_state_ut[28:36:]     #particular ut
-list_state = list_state_ut[:28:]    #particular state
 
-#required in the coding part
+#required in the coding part for ("/All_UT")  
+list_all_ut = list_state_ut[28:36]     #particular ut
+
+#required in the coding part for ("/All_States")  
+list_state = list_state_ut[0:28]    #particular state
+
+#required in the coding part for each plotting in templates
 font1 = {'family':'serif','color':'orange','size':20}
 font2 = {'family':'serif','color':'red','size':15}
 
