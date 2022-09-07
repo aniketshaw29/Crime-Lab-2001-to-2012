@@ -17,32 +17,32 @@ d=df[:-38] #to drop total crime rows      #d is the updated data set
 #slicing of list ---->  list[ Initial : End : IndexJump ]
 
 #required in the coding part for ("/INDIA_CRIME_CHART")
-list_state_ut = d['STATE/UT'].tolist()
-list_state_ut = list_state_ut[0:36]     #total state/ut coloumn
-list_state_ut.remove('TOTAL (STATES)')   #particular state and UT only
+list_of_all_states_and_uts = d['STATE/UT'].unique().tolist()  
+list_of_all_states_and_uts.remove('TOTAL (STATES)') 
+list_of_all_states_and_uts.remove('TOTAL (UTs)') 
+list_of_all_states_and_uts.remove('TOTAL (ALL-INDIA)') 
 
 #required in the coding part for ("/All_UT")  
-list_all_ut = list_state_ut[28:36]     #particular ut
+list_all_uts = list_of_all_states_and_uts[28:36]     #particular ut
 
 #required in the coding part for ("/All_States")  
-list_state = list_state_ut[0:28]    #particular state
+list_of_all_states = list_of_all_states_and_uts[0:28]    #particular state
 
-#required in the coding part for each plotting in templates
+#required in the coding part for each plotting
 font1 = {'family':'serif','color':'orange','size':20}
 font2 = {'family':'serif','color':'red','size':15}
 
 ######################################################################################
 #important required templates
 
-def crime_template(str):
-    temp1 = d[d['CRIME HEAD'].str.contains(str)] 
+def crime_template(sCrimeName):
+    temp1 = d[d['CRIME HEAD'].str.contains(sCrimeName)] 
     temp2 = temp1.drop(temp1.index[[-1,-2,-10]]) 
-    #temp2 = temp2.sort_values(by='TOTAL',ascending=False)
     tl=temp2['TOTAL'].tolist()
     temp2.plot(kind='bar',x='STATE/UT',y='TOTAL',color='red',figsize=(15,6))
     plt.xticks(rotation='vertical')
     plt.grid(b=True, color='purple',alpha=0.5)
-    plt.title(str, fontdict = font1)
+    plt.title(sCrimeName, fontdict = font1)
     plt.xlabel("LIST OF STATES/UT", fontdict = font2)
     plt.ylabel("RATE OF CRIMES", fontdict = font2)
     for i in range(35):                         #to show the value on the bar
@@ -52,14 +52,13 @@ def crime_template(str):
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return data
 
-def state_ut_template(str):
-    temp1 = d[d['STATE/UT'].str.contains(str)]
-    #temp1 = temp1.sort_values(by='TOTAL',ascending=False)
+def state_ut_template(sName):
+    temp1 = d[d['STATE/UT'].str.contains(sName)]
     tl=temp1['TOTAL'].tolist() 
     temp1.plot(kind='bar',x='CRIME HEAD',y='TOTAL',color='red',figsize=(8,6))
     plt.xticks(rotation='vertical')
     plt.grid(b=True, color='purple',alpha=0.5)
-    plt.title(str, fontdict = font1)
+    plt.title(sName, fontdict = font1)
     plt.xlabel("LIST OF CRIMES", fontdict = font2)
     plt.ylabel("RATE OF CRIMES", fontdict = font2)
     for i in range(12):
@@ -69,15 +68,14 @@ def state_ut_template(str):
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return data
 
-def crime_by_year_template(str):
+def crime_by_year_template(sYear):
     y=d[d['STATE/UT'].str.contains('ALL-INDIA')]
-    sc=y.loc[:,['CRIME HEAD',str]]
-    #sc = sc.sort_values(by=str,ascending=False)
-    tl=sc[str].tolist()
-    sc.plot(kind='bar',x='CRIME HEAD',y=str,color='red',figsize=(8,4))
+    sc=y.loc[:,['CRIME HEAD',sYear]]
+    tl=sc[sYear].tolist()
+    sc.plot(kind='bar',x='CRIME HEAD',y=sYear,color='red',figsize=(8,4))
     plt.xticks(rotation="vertical")
     plt.grid(b=True, color='grey',alpha=0.5)
-    plt.title(str, fontdict = font1)
+    plt.title(sYear, fontdict = font1)
     plt.xlabel("TYPE OF CRIMES", fontdict = font2)
     plt.ylabel("RATE OF CRIME", fontdict = font2)
     for i in range(12):
@@ -87,7 +85,7 @@ def crime_by_year_template(str):
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return data
 
-def all_states_and_ut_templates(list,id,str,a,m,n): 
+def total_templates(list,nLen,sXLabel,sTitle,nFig,nTextx,nTexty,NSize): 
     total_list=[]
     for i in list:
         temp1 = d[d['STATE/UT'].str.contains(i)] 
@@ -98,15 +96,14 @@ def all_states_and_ut_templates(list,id,str,a,m,n):
     ts=pd.DataFrame(data)
     ts = ts.sort_values(by ='TOTAL' ,ascending=False)
     tl=ts['TOTAL'].tolist() 
-    ts.plot(kind='bar',x='STATE/UT',y='TOTAL',color='red',figsize=(float(a),6))
+    ts.plot(kind='bar',x='STATE/UT',y='TOTAL',color='red',figsize=(float(nFig),6))
     plt.xticks(rotation='vertical')
     plt.grid(b=True, color='purple',alpha=0.5)
-    plt.title(str, fontdict = font1)
-    for i in range(int(id)):
-        plt.text(x=i-float(m), y = tl[i]+int(n), s = tl[i], size = 10)
-    plt.xlabel("LIST OF "+str, fontdict = font2)
+    plt.title(sTitle, fontdict = font1)
+    for i in range(int(nLen)):
+        plt.text(x=i-float(nTextx), y = tl[i]+int(nTexty), s = tl[i], size = NSize)
+    plt.xlabel("LIST OF "+sXLabel, fontdict = font2)
     plt.ylabel("RATE OF CRIMES", fontdict = font2)
-    
     buf = BytesIO()
     plt.savefig(buf, format="png", bbox_inches='tight')
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
@@ -202,27 +199,7 @@ def total_crime():
     
 @app.route("/INDIA_CRIME_CHART")       
 def INDIA_CRIME_CHART():
-    total_list=[]
-    for i in list_state_ut:
-        temp1 = d[d['STATE/UT'].str.contains(i)] 
-        temp2=temp1.sum(axis=0)
-        temp2=temp2['TOTAL']
-        total_list.append(temp2)
-    data = {'STATE/UT':list_state_ut, 'TOTAL':total_list}
-    ts=pd.DataFrame(data)
-    ts = ts.sort_values(by ='TOTAL' ,ascending=False)
-    tl=ts['TOTAL'].tolist() 
-    ts.plot(kind='bar',x='STATE/UT',y='TOTAL',color='red',figsize=(16.6,6))
-    plt.xticks(rotation='vertical')
-    plt.grid(b=True, color='purple',alpha=0.5)
-    plt.title("INDIAN CRIME CHART", fontdict = font1)
-    for i in range(35):
-        plt.text(x=i-0.5, y = tl[i]+1000, s = tl[i], size = 8)
-    plt.xlabel("LIST OF CRIMES", fontdict = font2)
-    plt.ylabel("RATE OF CRIMES", fontdict = font2)
-    buf = BytesIO()
-    plt.savefig(buf, format="png", bbox_inches='tight')
-    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    data = total_templates(list_of_all_states_and_uts,35,'TOTAL STATES & UTs','Indian Crime Chart',16.6,0.5,1000,8)
     return render_template('showData.html', data=data)
     
 ####################################################################################################
@@ -405,12 +382,12 @@ def PUDUCHERRY():
 
 @app.route("/All_States")       
 def All_States():
-    data =  all_states_and_ut_templates(list_state,28,'TOTAL STATES',16.5,0.4,1000)
+    data =  total_templates(list_of_all_states,28,'STATES','All States',16.5,0.4,1000,9)
     return render_template('showData.html', data=data)
     
 @app.route("/All_UT")         
 def All_UT():
-    data =  all_states_and_ut_templates(list_all_ut,7,'TOTAL UNION TERRITORY',8,0.2,100)
+    data =  total_templates(list_all_uts,7,'UNION TERRITORY','All UTs',8,0.2,100,10)
     return render_template('showData.html', data=data)
 
 #####################################################################################################
