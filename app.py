@@ -104,7 +104,7 @@ def all_states_and_ut_templates(list,id,str,a,m,n):
     plt.title(str, fontdict = font1)
     for i in range(int(id)):
         plt.text(x=i-float(m), y = tl[i]+int(n), s = tl[i], size = 10)
-    plt.xlabel("LIST OF CRIMES", fontdict = font2)
+    plt.xlabel("LIST OF "+str, fontdict = font2)
     plt.ylabel("RATE OF CRIMES", fontdict = font2)
     
     buf = BytesIO()
